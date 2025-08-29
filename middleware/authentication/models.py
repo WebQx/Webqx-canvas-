@@ -29,7 +29,7 @@ class UserProfile(models.Model):
     """Extended profile information for users"""
     
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
-    avatar = models.ImageField(upload_to='avatars/', blank=True, null=True)
+    avatar = models.CharField(max_length=255, blank=True, null=True)  # URL to avatar image
     bio = models.TextField(blank=True)
     emergency_contact_name = models.CharField(max_length=100, blank=True)
     emergency_contact_phone = models.CharField(max_length=20, blank=True)

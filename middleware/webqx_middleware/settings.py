@@ -149,6 +149,8 @@ MEDIA_ROOT = BASE_DIR / 'media'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Custom settings
+AUTH_USER_MODEL = 'authentication.User'
+
 OPENEMR_API_URL = os.getenv('OPENEMR_API_URL', 'http://localhost:8080/apis/default')
 OPENEMR_API_TOKEN = os.getenv('OPENEMR_API_TOKEN', '')
 

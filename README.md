@@ -1,272 +1,315 @@
-# 🌐 WebQx.Healthcare Platform
+# 🌐 WebQx Healthcare Platform - Mobile App Architecture
 
 **Empowering equitable, AI-enhanced healthcare for providers and patients worldwide.**
 
-WebQx.Healthcare is a modular, multilingual digital health platform designed to bridge clinical workflows across EMR, telemedicine, voice AI, and pharmacy systems. Built with ethical design, secure integration, and global accessibility in mind, it supports scalable deployments—from urban hospitals to remote clinics serving Medically Underserved Populations (MUPs).
+This repository implements a comprehensive mobile health platform with React Native mobile app, Django REST middleware, and microservices backend architecture.
 
 ---
 
-## 🚀 Features
+## 📱 Mobile App Layer (React Native)
 
-- **Modular Architecture**: EMR, lab, pharmacy, dashboard, and telemedicine modules
-- **Telemedicine Integration**: Secure video consults via Jitsi Meet
-- **Voice AI**: Real-time transcription and command support using Whisper
-- **Multilingual Interface**: Adaptive UI for diverse patient populations
-- **Secure API Layer**: RESTful endpoints for frontend-backend communication
-- **Cloud-Ready**: Deployable on AWS EC2 with Docker support
-- **Compliance Toolkit**: HIPAA/GDPR-ready modules for ethical data handling
-- **Offline Mode** *(coming soon)*: For low-connectivity environments
+Complete mobile application with the following screens and features:
 
----
+### Core Screens
+- **🏠 Home**: Daily check-ins, reminders, care team updates
+- **📓 Journal**: Text/audio entries with NLP tagging and export functionality
+- **🏥 EMR Access**: Labs, medications, appointments, care plans
+- **📹 Telehealth**: WebRTC (free) or Zoom SDK (premium) video calls
+- **💬 Messaging**: Secure communication with care team
+- **⚙️ Settings**: Language, accessibility, device sync, tier management
 
-## 🧑‍⚕️ MUP Access Program
-
-WebQx.Healthcare offers free or sponsored access to clinics and organizations serving Medically Underserved Populations.
-
-### Eligibility Includes:
-- Rural or tribal health centers
-- Refugee and humanitarian clinics
-- Disability and elder care facilities
-- Low-income urban clinics
-
-📥 [Apply for Equity Access](https://webqx.healthcare/equity-access) *(link placeholder)*
+### Authentication & Security
+- JWT-based authentication with automatic token refresh
+- Biometric login (fingerprint/face ID) support
+- Secure token storage using Expo SecureStore
+- Role-based access control integration
 
 ---
 
-## 🛠️ Tech Stack
+## 🔧 Middleware Layer (Django REST)
 
-| Layer            | Technology                     |
-|------------------|--------------------------------|
-| Backend          | Python (FastAPI), PostgreSQL   |
-| Frontend         | React, Tailwind CSS            |
-| Telemedicine     | Jitsi Meet                     |
-| Voice AI         | OpenAI Whisper                 |
-| Messaging Queue  | RabbitMQ                       |
-| Deployment       | Docker, AWS EC2                |
-| Security         | OAuth2, JWT, HTTPS             |
+Robust middleware layer providing:
+
+### Authentication System
+- **JWT Authentication**: Secure token-based auth with refresh tokens
+- **Biometric Authentication**: Device-specific biometric token management
+- **Session Tracking**: Monitor active user sessions across devices
+- **Login Attempt Monitoring**: Security tracking and rate limiting
+
+### Core Services
+- **API Gateway**: Unified routing to backend services
+- **Sync Engine**: Offline data queues and conflict resolution
+- **Tier Logic**: Feature access based on user subscription (Standard/Premium)
+- **Audit Logs**: HIPAA-compliant activity tracking
 
 ---
 
-## 📦 Installation
+## 🏥 Backend Services (FastAPI Microservices)
 
+### 1. OpenEMR Integration Service
+- **FHIR/REST APIs**: Complete patient data integration
+- **Patient Records**: Demographics, medical history, vitals
+- **Appointments**: Scheduling and management
+- **Lab Results**: Real-time result access
+- **Medications**: Prescription tracking and history
+
+### 2. Journaling Database Service
+- **PostgreSQL Storage**: Secure journal entry storage
+- **NLP Analysis**: Automated text analysis for symptoms, sentiment, themes
+- **Audio Transcription**: Speech-to-text conversion
+- **Trend Analysis**: Health insights and pattern recognition
+- **Export Functionality**: Multiple format support (JSON, PDF, CSV)
+
+### 3. Telehealth Service
+- **WebRTC Integration**: Free tier video calling with STUN/TURN servers
+- **Zoom SDK Integration**: Premium HD video calls
+- **Call Recording**: Session recording and transcription
+- **Appointment Scheduling**: Integrated booking system
+
+### 4. Notification Service
+- **Firebase Push Notifications**: Real-time mobile alerts
+- **Twilio SMS**: Text message notifications
+- **Email Notifications**: SMTP-based email alerts
+- **Delivery Tracking**: Notification status monitoring
+
+### 5. Analytics Engine
+- **Usage Analytics**: App interaction tracking
+- **Health Insights**: Trend analysis and predictions
+- **Engagement Metrics**: User behavior analysis
+- **Reporting Dashboard**: Administrative insights
+
+---
+
+## 🚀 Quick Start
+
+### Prerequisites
+- Node.js 18+ and npm
+- Python 3.11+
+- Docker and Docker Compose
+- Expo CLI for React Native development
+
+### 1. Mobile App Setup
 ```bash
-# Clone the repo
-git clone https://github.com/your-org/webqx-healthcare.git
-cd webqx-healthcare
-
-# Backend setup
-cd backend
-pip install -r requirements.txt
-uvicorn main:app --reload
-
-# Frontend setup
-cd ../frontend
+cd mobile-app
 npm install
-npm run dev
+npm start
+# Scan QR code with Expo Go app
+```
 
-WebQx.Healthcare follows a microservice-inspired modular architecture:
-
-- **Backend Services**: EMR, Labs, Pharmacy, Voice AI, Telemedicine
-- **API Gateway**: Unified RESTful interface
-- **Frontend**: React-based dashboard with role-based access
-- **Messaging Layer**: RabbitMQ for asynchronous communication
-- **Database**: PostgreSQL with encrypted storage
-- **Deployment**: Docker containers orchestrated via AWS EC2 or Kubernetes
-
-Each module is independently deployable and configurable:
-
-- `emr/`: Patient records, clinical notes, vitals
-- `labs/`: Orders, results, HL7/FHIR integration
-- `pharmacy/`: Prescriptions, inventory, alerts
-- `telemedicine/`: Jitsi integration, scheduling
-- `voice-ai/`: Whisper-based transcription and commands
-- `dashboard/`: Unified provider interface
-
-WebQx.Healthcare is built with privacy and compliance at its core:
-
-- Data encryption at rest and in transit
-- Role-based access control (RBAC)
-- Audit logging and anomaly detection
-- HIPAA/GDPR-ready architecture
-- Consent management for patients
-
-Supports multilingual UI and clinical terminology:
-
-- Language packs: English, Spanish, French, Arabic, Hindi, Swahili
-- RTL support for Arabic and Urdu
-- Locale-specific date/time formats
-- ICD-10 and SNOMED mappings
-
-### Q3 2025
-- [x] EMR + Telemedicine MVP
-- [x] Voice AI transcription
-- [x] MUP Access Program launch
-
-### Q4 2025
-- [ ] Offline-first mode for rural clinics
-- [ ] FHIR API layer
-- [ ] Mobile app (React Native)
-
-### 2026
-- [ ] AI-powered clinical decision support
-- [ ] Integration with national health systems
-- [ ] Research data export for public health
-
-
-Absolutely, Naveed. Here’s a comprehensive, GitHub-ready `README.md` blueprint for your Django-based health informatics project integrating patient and provider modules with OpenEMR. It’s designed to reflect your mission of inclusion, service, and technical excellence—while remaining accessible to collaborators across disciplines.
-
----
-
-🧠 OpenEMR Django Modules
-
-🌍 Overview
-
-This project extends OpenEMR with Django-powered modules for patient and provider access. Built for clinics serving underserved communities, it emphasizes secure, mobile-friendly workflows and HIPAA-conscious design. The system is cross-platform compatible—accessible via iPad, Android, and desktop browsers.
-
----
-
-🚀 Features
-
-🧑‍💻 Patient Portal
-
-• Secure registration and login
-• Appointment scheduling
-• Access to medical records
-• Messaging with providers
-
-
-🧑‍⚕️ Provider Panel
-
-• Dashboard for patient management
-• Clinical note submission
-• Appointment coordination
-• EMR data access and updates
-
-
-🔐 Security & Compliance
-
-• Role-based access control (RBAC)
-• Encrypted data storage
-• HIPAA-conscious architecture
-• OAuth2 / JWT authentication
-
-
-🔗 OpenEMR Integration
-
-• RESTful API and/or direct DB access
-• Modular connector for EMR workflows
-• Sync for patient records, appointments, and provider notes
-
-
-📱 Cross-Platform UX
-
-• Responsive design using Bootstrap or Tailwind CSS
-• Optimized for tablets, smartphones, and desktops
-• Optional Progressive Web App (PWA) support
-
-
----
-
-🧰 Tech Stack
-
-Layer	Technology	
-Backend	Django (Python)	
-Frontend	HTML/CSS + Bootstrap	
-EMR Integration	OpenEMR API / MySQL	
-Auth	Django Allauth / JWT	
-Deployment	Docker + Heroku / AWS	
-CI/CD	GitHub Actions	
-
-
----
-
-📁 Project Structure
-
-openemr-django-modules/
-├── patient_portal/
-│   ├── templates/patient/
-│   ├── static/patient/
-│   ├── views.py
-│   ├── models.py
-│   ├── forms.py
-│   └── urls.py
-├── provider_panel/
-│   ├── templates/provider/
-│   ├── static/provider/
-│   ├── views.py
-│   ├── models.py
-│   ├── forms.py
-│   └── urls.py
-├── openemr_connector/
-│   ├── emr_api.py
-│   ├── auth.py
-│   └── utils.py
-├── config/
-│   ├── settings.py
-│   ├── urls.py
-│   └── wsgi.py
-├── requirements.txt
-├── README.md
-└── .gitignore
-
-
----
-
-⚙️ Setup Instructions
-
-1. Clone the Repository
-
-git clone https://github.com/your-org/openemr-django-modules.git
-cd openemr-django-modules
-
-
-2. Create Virtual Environment & Install Dependencies
-
+### 2. Middleware Setup
+```bash
+cd middleware
 python -m venv venv
-source venv/bin/activate
+source venv/bin/activate  # Windows: venv\Scripts\activate
 pip install -r requirements.txt
-
-
-3. Configure Environment Variables
-
-Create a `.env` file:
-
-DJANGO_SECRET_KEY=your-secret-key
-OPENEMR_DB_HOST=your-db-host
-OPENEMR_DB_USER=your-db-user
-OPENEMR_DB_PASSWORD=your-db-password
-
-
-4. Run Migrations & Start Server
-
 python manage.py migrate
 python manage.py runserver
+```
 
+### 3. Backend Services (Docker)
+```bash
+docker-compose up -d
+```
+
+### 4. Environment Configuration
+Create `.env` file:
+```env
+# Middleware
+SECRET_KEY=your-django-secret-key
+DATABASE_URL=postgresql://webqx:password@localhost:5432/webqx
+
+# OpenEMR Integration
+OPENEMR_API_URL=http://localhost:8080/apis/default
+OPENEMR_API_TOKEN=your-openemr-token
+
+# Zoom SDK (Premium Tier)
+ZOOM_API_KEY=your-zoom-api-key
+ZOOM_API_SECRET=your-zoom-api-secret
+
+# Notifications
+FIREBASE_CREDENTIALS_PATH=path/to/firebase-credentials.json
+TWILIO_ACCOUNT_SID=your-twilio-sid
+TWILIO_AUTH_TOKEN=your-twilio-token
+```
 
 ---
 
-🧪 Testing & CI/CD
+## 🏗️ Architecture Overview
 
-• Unit tests for views, models, and EMR connectors
-• Integration tests for patient-provider workflows
-• GitHub Actions for:• Code linting
-• Test automation
-• Deployment pipelines
-
-
-
----
-
-🤝 Contributing
-
-We welcome collaborators committed to inclusive healthcare and ethical tech. Please see `CONTRIBUTING.md` for guidelines on submitting issues, pull requests, and feature proposals.
-
----
-
-📄 License
-
-This project is licensed under the MIT License. See the `LICENSE` file for details.
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│  Mobile App     │    │   Middleware    │    │ Backend Services│
+│  (React Native) │◄──►│  (Django REST)  │◄──►│   (FastAPI)     │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+        │                       │                       │
+        ▼                       ▼                       ▼
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   User Auth     │    │   API Gateway   │    │    OpenEMR      │
+│   Biometrics    │    │   Sync Engine   │    │   Journaling    │
+│   Offline Sync  │    │   Audit Logs    │    │   Telehealth    │
+│   Tier Logic    │    │   Tier Logic    │    │  Notifications  │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+```
 
 ---
 
-Would you like help drafting the actual `emr_api.py` connector next, or scaffolding the patient registration flow? We can build this out step by step.
+## 🔒 Security & Compliance
+
+- **HIPAA Compliant**: End-to-end encryption and secure data handling
+- **JWT Authentication**: Secure token-based authentication with refresh
+- **Biometric Login**: Device-specific fingerprint and face ID support
+- **Role-Based Access Control**: Provider, patient, and admin permissions
+- **Audit Logging**: Complete activity tracking for compliance
+- **Data Encryption**: AES-256 encryption at rest and TLS in transit
+
+---
+
+## 🌐 Multi-Tier Subscription Model
+
+### 📦 Standard Tier (Free)
+- WebRTC video calls (720p)
+- Basic health tracking and journaling
+- Text-only journal entries
+- Basic EMR access
+- Community support
+- 1GB storage
+
+### ⭐ Premium Tier
+- Zoom HD video calls (1080p)
+- Advanced health analytics and AI insights
+- Audio + text journal entries
+- Full EMR integration with advanced features
+- Priority support
+- 10GB storage
+- Advanced NLP analysis
+
+---
+
+## 🌍 Internationalization
+
+Support for multiple languages and locales:
+- **Languages**: English, Spanish, French, Arabic, Hindi, Swahili
+- **RTL Support**: Right-to-left text for Arabic and similar languages
+- **Locale Formatting**: Date, time, and number formatting
+- **Accessibility**: Screen reader support and high contrast modes
+
+---
+
+## 📊 Key Features
+
+### 🩺 For Patients
+- **Medical Records**: Secure access to labs, medications, appointments
+- **Video Consultations**: HD video calls with healthcare providers
+- **Health Journaling**: AI-powered symptom and mood tracking
+- **Medication Reminders**: Smart notification system
+- **Care Team Messaging**: Secure communication platform
+
+### 👨‍⚕️ For Providers
+- **Patient Dashboard**: Comprehensive patient overview and analytics
+- **Telehealth Platform**: Professional video consultation tools
+- **Clinical Notes**: Integrated documentation and record keeping
+- **Lab Results**: Real-time result notifications and review
+- **Appointment Management**: Scheduling and patient communication
+
+---
+
+## 🧪 Testing & Quality Assurance
+
+```bash
+# Mobile app testing
+cd mobile-app && npm test
+
+# Middleware testing
+cd middleware && python manage.py test
+
+# Backend services testing
+cd backend-services && pytest
+
+# End-to-end testing
+npm run test:e2e
+```
+
+---
+
+## 🚢 Deployment
+
+### Development
+```bash
+docker-compose up -d
+```
+
+### Production
+```bash
+docker-compose -f docker-compose.prod.yml up -d
+```
+
+### Cloud Deployment (AWS/Azure/GCP)
+```bash
+cd infrastructure
+terraform init && terraform apply
+```
+
+---
+
+## 📈 Analytics & Monitoring
+
+- **Application Performance Monitoring**: Real-time performance tracking
+- **Health Data Analytics**: Patient outcome trends and insights
+- **Usage Metrics**: Feature adoption and user engagement
+- **Error Tracking**: Automated error detection and reporting
+- **Security Monitoring**: Audit log analysis and threat detection
+
+---
+
+## 🤝 Contributing
+
+We welcome contributions to improve healthcare accessibility:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+---
+
+## 📜 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## 🆘 Support & Community
+
+- **Documentation**: [docs.webqx.healthcare](https://docs.webqx.healthcare)
+- **GitHub Issues**: [Report bugs and request features](https://github.com/WebQx/app/issues)
+- **Discord Community**: [Join our healthcare tech community](https://discord.gg/webqx-healthcare)
+- **Email Support**: support@webqx.healthcare
+
+---
+
+## 🎯 Roadmap
+
+### Q1 2025
+- [x] Mobile app architecture implementation
+- [x] JWT authentication with biometric support
+- [x] Multi-tier subscription system
+- [x] OpenEMR integration foundation
+
+### Q2 2025
+- [ ] Advanced AI health insights
+- [ ] Offline-first synchronization
+- [ ] Provider dashboard and analytics
+- [ ] Advanced telehealth features
+
+### Q3 2025
+- [ ] Integration with national health systems
+- [ ] Advanced clinical decision support
+- [ ] Research data export capabilities
+- [ ] Enhanced accessibility features
+
+---
+
+**Built with ❤️ for equitable healthcare access worldwide.**
+
+*WebQx Healthcare Platform - Bridging the gap between technology and compassionate care.*
