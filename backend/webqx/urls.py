@@ -36,14 +36,14 @@ urlpatterns = [
     path('api/auth/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/auth/', include('apps.authentication.urls')),
     
-    # Core modules
-    path('api/emr/', include('apps.emr.urls')),
-    path('api/journal/', include('apps.journaling.urls')),
-    path('api/telehealth/', include('apps.telehealth.urls')),
-    path('api/messaging/', include('apps.messaging.urls')),
-    path('api/notifications/', include('apps.notifications.urls')),
-    path('api/analytics/', include('apps.analytics.urls')),
-    path('api/sync/', include('apps.sync.urls')),
+    # Core modules (temporarily disabled for testing)
+    # path('api/emr/', include('apps.emr.urls')),
+    # path('api/journal/', include('apps.journaling.urls')),
+    # path('api/telehealth/', include('apps.telehealth.urls')),
+    # path('api/messaging/', include('apps.messaging.urls')),
+    # path('api/notifications/', include('apps.notifications.urls')),
+    # path('api/analytics/', include('apps.analytics.urls')),
+    # path('api/sync/', include('apps.sync.urls')),
     
     # API router
     path('api/', include(router.urls)),

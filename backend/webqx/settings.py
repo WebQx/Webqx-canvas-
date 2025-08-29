@@ -46,20 +46,20 @@ THIRD_PARTY_APPS = [
     'rest_framework.authtoken',
     'rest_framework_simplejwt',
     'corsheaders',
-    'channels',
-    'django_celery_beat',
-    'django_celery_results',
+    # 'channels',
+    # 'django_celery_beat',
+    # 'django_celery_results',
 ]
 
 LOCAL_APPS = [
     'apps.authentication',
-    'apps.emr',
-    'apps.journaling',
-    'apps.telehealth',
-    'apps.messaging',
-    'apps.notifications',
-    'apps.analytics',
-    'apps.sync',
+    # 'apps.emr',
+    # 'apps.journaling',
+    # 'apps.telehealth',
+    # 'apps.messaging',
+    # 'apps.notifications',
+    # 'apps.analytics',
+    # 'apps.sync',
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -73,7 +73,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'apps.sync.middleware.OfflineSyncMiddleware',
+    # 'apps.sync.middleware.OfflineSyncMiddleware',
 ]
 
 ROOT_URLCONF = 'webqx.urls'
@@ -103,12 +103,8 @@ ASGI_APPLICATION = 'webqx.asgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('DB_NAME', 'webqx_healthcare'),
-        'USER': os.environ.get('DB_USER', 'postgres'),
-        'PASSWORD': os.environ.get('DB_PASSWORD', 'postgres'),
-        'HOST': os.environ.get('DB_HOST', 'localhost'),
-        'PORT': os.environ.get('DB_PORT', '5432'),
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
 

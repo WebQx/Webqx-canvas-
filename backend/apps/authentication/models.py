@@ -82,7 +82,7 @@ class UserProfile(models.Model):
     institution = models.CharField(max_length=200, blank=True)
     
     # Avatar and preferences
-    avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
+    # avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
     bio = models.TextField(max_length=500, blank=True)
     
     created_at = models.DateTimeField(auto_now_add=True)
