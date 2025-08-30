@@ -1,0 +1,65 @@
+{
+  "expo": {
+    "name": "WebQx Healthcare",
+    "slug": "webqx-healthcare",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.webqx.healthcare",
+      "infoPlist": {
+        "NSCameraUsageDescription": "This app needs access to camera for telehealth video calls and document scanning.",
+        "NSMicrophoneUsageDescription": "This app needs access to microphone for telehealth audio calls and voice notes.",
+        "NSFaceIDUsageDescription": "This app uses Face ID for secure biometric authentication."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#FFFFFF"
+      },
+      "package": "com.webqx.healthcare",
+      "permissions": [
+        "CAMERA",
+        "RECORD_AUDIO",
+        "MODIFY_AUDIO_SETTINGS",
+        "ACCESS_NETWORK_STATE",
+        "INTERNET",
+        "WRITE_EXTERNAL_STORAGE",
+        "READ_EXTERNAL_STORAGE",
+        "USE_FINGERPRINT",
+        "USE_BIOMETRIC"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-camera",
+      "expo-av",
+      "expo-local-authentication",
+      "expo-notifications",
+      [
+        "expo-document-picker",
+        {
+          "iCloudContainerEnvironment": "Production"
+        }
+      ]
+    ],
+    "scheme": "webqx-healthcare",
+    "notification": {
+      "icon": "./assets/notification-icon.png",
+      "color": "#007AFF"
+    }
+  }
+}
