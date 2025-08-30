@@ -25,6 +25,7 @@ import {
 import { theme } from '../../utils/theme';
 import { useAuth } from '../../hooks/useAuth';
 import { telehealthAPI } from '../../services/telehealthAPI';
+import { useAccessibility, getLocalizedText, getAccessibilityProps } from '../../utils/accessibility';
 
 interface ClinicSettings {
   default_telehealth_tier: 'webrtc' | 'zoom';
@@ -64,6 +65,7 @@ interface UserPermissions {
 
 const TelehealthTierSettings: React.FC = () => {
   const { user } = useAuth();
+  const { isScreenReaderEnabled, announceForAccessibility, makeAccessible } = useAccessibility();
   const [settings, setSettings] = useState<ClinicSettings | null>(null);
   const [tierPreviews, setTierPreviews] = useState<{webrtc: TierPreview, zoom: TierPreview} | null>(null);
   const [userPermissions, setUserPermissions] = useState<UserPermissions | null>(null);
@@ -71,6 +73,9 @@ const TelehealthTierSettings: React.FC = () => {
   const [saving, setSaving] = useState(false);
   const [previewModalVisible, setPreviewModalVisible] = useState(false);
   const [selectedPreviewTier, setSelectedPreviewTier] = useState<'webrtc' | 'zoom'>('webrtc');
+
+  // Get user's preferred language, default to English
+  const userLanguage = user?.language_preference || 'en';
 
   useEffect(() => {
     loadData();
@@ -90,9 +95,17 @@ const TelehealthTierSettings: React.FC = () => {
       setSettings(settingsResponse.data);
       setTierPreviews(previewResponse.data);
       setUserPermissions(permissionsResponse.data);
+      
+      // Announce for screen readers
+      if (isScreenReaderEnabled) {
+        announceForAccessibility(
+          getLocalizedText('telehealth.loaded', userLanguage, 'Telehealth settings loaded successfully')
+        );
+      }
     } catch (error) {
       console.error('Failed to load telehealth settings:', error);
-      Alert.alert('Error', 'Failed to load settings. Please try again.');
+      const errorMessage = getLocalizedText('error.load_settings', userLanguage, 'Failed to load settings. Please try again.');
+      Alert.alert(getLocalizedText('error.title', userLanguage, 'Error'), errorMessage);
     } finally {
       setLoading(false);
     }
@@ -100,7 +113,8 @@ const TelehealthTierSettings: React.FC = () => {
 
   const handleSaveSettings = async () => {
     if (!settings || !userPermissions?.can_edit_settings) {
-      Alert.alert('Access Denied', 'You do not have permission to modify clinic settings.');
+      const errorMessage = getLocalizedText('access_denied.edit', userLanguage, 'You do not have permission to modify clinic settings.');
+      Alert.alert(getLocalizedText('access_denied', userLanguage, 'Access Denied'), errorMessage);
       return;
     }
 
@@ -110,8 +124,8 @@ const TelehealthTierSettings: React.FC = () => {
       // Validate settings before saving
       if (settings.default_telehealth_tier === 'zoom' && !userPermissions.can_use_zoom) {
         Alert.alert(
-          'Subscription Required',
-          'Your current subscription does not include Zoom integration. Please upgrade to use the Paid Tier.'
+          getLocalizedText('subscription.required', userLanguage, 'Subscription Required'),
+          getLocalizedText('subscription.zoom_required', userLanguage, 'Your current subscription does not include Zoom integration. Please upgrade to use the Paid Tier.')
         );
         return;
       }
@@ -119,11 +133,17 @@ const TelehealthTierSettings: React.FC = () => {
       const response = await telehealthAPI.updateClinicSettings(settings);
       setSettings(response.data);
       
-      Alert.alert('Success', 'Telehealth tier settings have been updated successfully.');
+      const successMessage = getLocalizedText('settings.saved', userLanguage, 'Telehealth tier settings have been updated successfully.');
+      Alert.alert(getLocalizedText('success', userLanguage, 'Success'), successMessage);
+      
+      // Announce success for screen readers
+      if (isScreenReaderEnabled) {
+        announceForAccessibility(successMessage);
+      }
     } catch (error: any) {
       console.error('Failed to update settings:', error);
-      const errorMessage = error.response?.data?.error || 'Failed to update settings. Please try again.';
-      Alert.alert('Error', errorMessage);
+      const errorMessage = error.response?.data?.error || getLocalizedText('error.save_settings', userLanguage, 'Failed to update settings. Please try again.');
+      Alert.alert(getLocalizedText('error.title', userLanguage, 'Error'), errorMessage);
     } finally {
       setSaving(false);
     }
@@ -172,22 +192,29 @@ const TelehealthTierSettings: React.FC = () => {
               onPress={() => handleTierChange('webrtc')}
               color={theme.colors.primary}
               disabled={!userPermissions?.can_edit_settings}
+              {...makeAccessible(
+                getLocalizedText('telehealth.tier.free', userLanguage, 'Free Tier WebRTC'),
+                getLocalizedText('telehealth.tier.free.hint', userLanguage, 'Select free tier for basic video calls'),
+                'radio'
+              )}
             />
             <View style={styles.tierInfo}>
               <View style={styles.tierHeader}>
-                <Text style={styles.tierTitle}>🔘 Free Tier (WebRTC)</Text>
+                <Text style={styles.tierTitle}>
+                  🔘 {getLocalizedText('telehealth.tier.free', userLanguage, 'Free Tier (WebRTC)')}
+                </Text>
                 <Chip
                   mode="outlined"
                   style={styles.costChip}
                   textStyle={styles.costChipText}
                 >
-                  Free
+                  {getLocalizedText('cost.free', userLanguage, 'Free')}
                 </Chip>
               </View>
               <Text style={styles.tierDescription}>
-                • Peer-to-peer video{'\n'}
-                • Lightweight, no cost{'\n'}
-                • Ideal for low-bandwidth clinics
+                • {getLocalizedText('feature.peer_to_peer', userLanguage, 'Peer-to-peer video')}{'\n'}
+                • {getLocalizedText('feature.lightweight', userLanguage, 'Lightweight, no cost')}{'\n'}
+                • {getLocalizedText('feature.low_bandwidth', userLanguage, 'Ideal for low-bandwidth clinics')}
               </Text>
               <Button
                 mode="text"
@@ -196,8 +223,13 @@ const TelehealthTierSettings: React.FC = () => {
                   setPreviewModalVisible(true);
                 }}
                 style={styles.previewButton}
+                {...makeAccessible(
+                  getLocalizedText('button.view_details', userLanguage, 'View Details'),
+                  getLocalizedText('button.view_details.hint', userLanguage, 'View detailed information about WebRTC tier'),
+                  'button'
+                )}
               >
-                View Details
+                {getLocalizedText('button.view_details', userLanguage, 'View Details')}
               </Button>
             </View>
           </View>
@@ -210,22 +242,29 @@ const TelehealthTierSettings: React.FC = () => {
               onPress={() => handleTierChange('zoom')}
               color={theme.colors.primary}
               disabled={!userPermissions?.can_edit_settings || !userPermissions?.can_use_zoom}
+              {...makeAccessible(
+                getLocalizedText('telehealth.tier.paid', userLanguage, 'Paid Tier Zoom SDK'),
+                getLocalizedText('telehealth.tier.paid.hint', userLanguage, 'Select paid tier for advanced video features'),
+                'radio'
+              )}
             />
             <View style={styles.tierInfo}>
               <View style={styles.tierHeader}>
-                <Text style={styles.tierTitle}>🔘 Paid Tier (Zoom SDK)</Text>
+                <Text style={styles.tierTitle}>
+                  🔘 {getLocalizedText('telehealth.tier.paid', userLanguage, 'Paid Tier (Zoom SDK)')}
+                </Text>
                 <Chip
                   mode="outlined"
                   style={[styles.costChip, { backgroundColor: theme.colors.accent }]}
                   textStyle={[styles.costChipText, { color: 'white' }]}
                 >
-                  Premium
+                  {getLocalizedText('cost.premium', userLanguage, 'Premium')}
                 </Chip>
               </View>
               <Text style={styles.tierDescription}>
-                • Enterprise-grade video{'\n'}
-                • Screen sharing, recording{'\n'}
-                • HIPAA-compliant infrastructure
+                • {getLocalizedText('feature.enterprise_video', userLanguage, 'Enterprise-grade video')}{'\n'}
+                • {getLocalizedText('feature.screen_sharing', userLanguage, 'Screen sharing, recording')}{'\n'}
+                • {getLocalizedText('feature.hipaa_compliant', userLanguage, 'HIPAA-compliant infrastructure')}
               </Text>
               <Button
                 mode="text"
@@ -234,12 +273,17 @@ const TelehealthTierSettings: React.FC = () => {
                   setPreviewModalVisible(true);
                 }}
                 style={styles.previewButton}
+                {...makeAccessible(
+                  getLocalizedText('button.view_details', userLanguage, 'View Details'),
+                  getLocalizedText('button.view_details.hint', userLanguage, 'View detailed information about Zoom tier'),
+                  'button'
+                )}
               >
-                View Details
+                {getLocalizedText('button.view_details', userLanguage, 'View Details')}
               </Button>
               {!userPermissions?.can_use_zoom && (
                 <Text style={styles.upgradeNote}>
-                  ⚠️ Requires subscription upgrade
+                  ⚠️ {getLocalizedText('subscription.upgrade_required', userLanguage, 'Requires subscription upgrade')}
                 </Text>
               )}
             </View>
@@ -461,8 +505,13 @@ const TelehealthTierSettings: React.FC = () => {
             onPress={loadData}
             style={styles.actionButton}
             disabled={loading || saving}
+            {...makeAccessible(
+              getLocalizedText('button.refresh', userLanguage, 'Refresh'),
+              getLocalizedText('button.refresh.hint', userLanguage, 'Reload settings from server'),
+              'button'
+            )}
           >
-            Refresh
+            {getLocalizedText('button.refresh', userLanguage, 'Refresh')}
           </Button>
           <Button
             mode="contained"
@@ -470,8 +519,13 @@ const TelehealthTierSettings: React.FC = () => {
             style={styles.actionButton}
             loading={saving}
             disabled={loading || saving}
+            {...makeAccessible(
+              getLocalizedText('button.save', userLanguage, 'Save Changes'),
+              getLocalizedText('button.save.hint', userLanguage, 'Save telehealth tier settings'),
+              'button'
+            )}
           >
-            Save Changes
+            {getLocalizedText('button.save', userLanguage, 'Save Changes')}
           </Button>
         </View>
       )}

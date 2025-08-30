@@ -13,6 +13,7 @@ import EMRScreen from '../screens/emr/EMRScreen';
 import TelehealthScreen from '../screens/telehealth/TelehealthScreen';
 import MessagingScreen from '../screens/messaging/MessagingScreen';
 import SettingsScreen from '../screens/settings/SettingsScreen';
+import TelehealthTierSettings from '../screens/settings/TelehealthTierSettings';
 
 // Types
 import { RootState } from '../store/store';
@@ -25,6 +26,31 @@ const AuthStack = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
     <Stack.Screen name="Login" component={LoginScreen} />
     <Stack.Screen name="Register" component={RegisterScreen} />
+  </Stack.Navigator>
+);
+
+const SettingsStack = () => (
+  <Stack.Navigator
+    screenOptions={{
+      headerStyle: {
+        backgroundColor: theme.colors.primary,
+      },
+      headerTintColor: '#fff',
+      headerTitleStyle: {
+        fontWeight: 'bold',
+      },
+    }}
+  >
+    <Stack.Screen 
+      name="SettingsMain" 
+      component={SettingsScreen}
+      options={{ title: 'Settings' }}
+    />
+    <Stack.Screen 
+      name="TelehealthTierSettings" 
+      component={TelehealthTierSettings}
+      options={{ title: 'Telehealth Tier Settings' }}
+    />
   </Stack.Navigator>
 );
 
@@ -69,7 +95,7 @@ const MainTabs = () => (
     <Tab.Screen name="EMR" component={EMRScreen} />
     <Tab.Screen name="Telehealth" component={TelehealthScreen} />
     <Tab.Screen name="Messages" component={MessagingScreen} />
-    <Tab.Screen name="Settings" component={SettingsScreen} />
+    <Tab.Screen name="Settings" component={SettingsStack} />
   </Tab.Navigator>
 );
 
