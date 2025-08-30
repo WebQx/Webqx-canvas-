@@ -1,6 +1,7 @@
 from rest_framework import viewsets, permissions, status
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q
 from django.utils import timezone
 from datetime import timedelta
@@ -9,13 +10,17 @@ from .models import (
     TelehealthSession, TelehealthParticipant, WebRTCSignaling,
     TelehealthDeviceTest, TelehealthRecording, TelehealthWaitingRoom
 )
+from .clinic_models import ClinicSettings, TelehealthTierAuditLog, TelehealthUsageAnalytics
 from .serializers import (
     TelehealthSessionSerializer, TelehealthParticipantSerializer,
     WebRTCSignalingSerializer, TelehealthDeviceTestSerializer,
     TelehealthRecordingSerializer, SessionJoinInfoSerializer,
-    TelehealthWaitingRoomSerializer
+    TelehealthWaitingRoomSerializer, ClinicSettingsSerializer,
+    TelehealthTierAuditLogSerializer, TelehealthUsageAnalyticsSerializer,
+    TelehealthTierPreviewSerializer
 )
 from .services import TelehealthPlatformService, TelehealthNotificationService
+from apps.authentication.models import AuditLog
 
 
 class TelehealthSessionViewSet(viewsets.ModelViewSet):
@@ -378,3 +383,211 @@ class TelehealthWaitingRoomViewSet(viewsets.ModelViewSet):
                 {'error': 'Participant not found in waiting room'},
                 status=status.HTTP_404_NOT_FOUND
             )
+
+def check_admin_or_coordinator_permission(user):
+    """Helper function to check if user can modify clinic settings"""
+    return user.user_type in ['admin', 'care_team'] and user.is_staff
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_clinic_settings(request):
+    """Get current clinic telehealth settings"""
+    settings_obj = ClinicSettings.get_current_settings()
+    serializer = ClinicSettingsSerializer(settings_obj)
+    return Response(serializer.data)
+
+
+@api_view(['POST', 'PUT'])
+@permission_classes([IsAuthenticated])
+def update_clinic_settings(request):
+    """Update clinic telehealth settings (Admin/Coordinator only)"""
+    
+    # Check permissions
+    if not check_admin_or_coordinator_permission(request.user):
+        return Response(
+            {'error': 'Access denied. Only administrators and coordinators can modify clinic settings.'},
+            status=status.HTTP_403_FORBIDDEN
+        )
+    
+    settings_obj = ClinicSettings.get_current_settings()
+    old_values = {
+        'default_telehealth_tier': settings_obj.default_telehealth_tier,
+        'enable_fallback_to_webrtc': settings_obj.enable_fallback_to_webrtc,
+        'enable_patient_choice': settings_obj.enable_patient_choice,
+        'enable_bandwidth_detection': settings_obj.enable_bandwidth_detection,
+        'minimum_bandwidth_for_zoom': settings_obj.minimum_bandwidth_for_zoom,
+        'enable_high_contrast_mode': settings_obj.enable_high_contrast_mode,
+        'default_language': settings_obj.default_language,
+    }
+    
+    serializer = ClinicSettingsSerializer(
+        settings_obj, 
+        data=request.data, 
+        context={'request': request}
+    )
+    
+    if serializer.is_valid():
+        # Save the settings
+        updated_settings = serializer.save(last_modified_by=request.user)
+        
+        # Create audit log entry
+        new_values = {
+            'default_telehealth_tier': updated_settings.default_telehealth_tier,
+            'enable_fallback_to_webrtc': updated_settings.enable_fallback_to_webrtc,
+            'enable_patient_choice': updated_settings.enable_patient_choice,
+            'enable_bandwidth_detection': updated_settings.enable_bandwidth_detection,
+            'minimum_bandwidth_for_zoom': updated_settings.minimum_bandwidth_for_zoom,
+            'enable_high_contrast_mode': updated_settings.enable_high_contrast_mode,
+            'default_language': updated_settings.default_language,
+        }
+        
+        # Determine change type
+        change_type = 'tier_change'
+        if old_values['default_telehealth_tier'] != new_values['default_telehealth_tier']:
+            change_type = 'tier_change'
+        elif old_values['enable_fallback_to_webrtc'] != new_values['enable_fallback_to_webrtc']:
+            change_type = 'fallback_toggle'
+        elif old_values['enable_patient_choice'] != new_values['enable_patient_choice']:
+            change_type = 'patient_choice_toggle'
+        elif old_values['enable_bandwidth_detection'] != new_values['enable_bandwidth_detection'] or \
+             old_values['minimum_bandwidth_for_zoom'] != new_values['minimum_bandwidth_for_zoom']:
+            change_type = 'bandwidth_setting'
+        elif old_values['enable_high_contrast_mode'] != new_values['enable_high_contrast_mode']:
+            change_type = 'accessibility_change'
+        elif old_values['default_language'] != new_values['default_language']:
+            change_type = 'language_change'
+        
+        # Create audit log
+        TelehealthTierAuditLog.objects.create(
+            change_type=change_type,
+            user=request.user,
+            old_value=old_values,
+            new_value=new_values,
+            ip_address=request.META.get('REMOTE_ADDR'),
+            user_agent=request.META.get('HTTP_USER_AGENT', ''),
+            reason=request.data.get('reason', 'Settings updated via web interface')
+        )
+        
+        # Also create general audit log
+        AuditLog.objects.create(
+            user=request.user,
+            action_type='admin_action',
+            action_description=f'Updated clinic telehealth settings: {change_type}',
+            ip_address=request.META.get('REMOTE_ADDR'),
+            user_agent=request.META.get('HTTP_USER_AGENT', ''),
+            resource_type='ClinicSettings',
+            resource_id='1'
+        )
+        
+        return Response(serializer.data)
+    
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_telehealth_tier_preview(request):
+    """Get preview information for different telehealth tiers"""
+    
+    webrtc_preview = {
+        'tier': 'webrtc',
+        'title': 'Free Tier (WebRTC)',
+        'description': 'Peer-to-peer video communication for cost-effective telehealth',
+        'features': [
+            'Peer-to-peer video calls',
+            'Audio and video communication', 
+            'Text chat during sessions',
+            'Basic screen sharing (limited)',
+            'Connection quality monitoring'
+        ],
+        'pros': [
+            'No additional cost',
+            'Works well with good internet connection',
+            'Direct peer-to-peer connection',
+            'Lower latency in ideal conditions',
+            'Privacy-focused (no server recording)'
+        ],
+        'cons': [
+            'May struggle with poor network conditions',
+            'Limited features compared to enterprise solutions',
+            'No advanced recording capabilities',
+            'Connection quality depends on both endpoints',
+            'Limited support for multiple participants'
+        ],
+        'ideal_for': [
+            'Rural clinics with budget constraints',
+            'Low-bandwidth environments',
+            'Basic consultation needs',
+            'Privacy-sensitive sessions',
+            'Small practices'
+        ],
+        'bandwidth_requirement': '512 kbps recommended',
+        'cost': 'Free'
+    }
+    
+    zoom_preview = {
+        'tier': 'zoom',
+        'title': 'Paid Tier (Zoom SDK)',
+        'description': 'Enterprise-grade video platform with advanced features',
+        'features': [
+            'HD video and audio quality',
+            'Advanced screen sharing',
+            'Session recording and storage',
+            'Waiting rooms',
+            'Multi-participant support',
+            'Chat and file sharing',
+            'Virtual backgrounds',
+            'Breakout rooms support'
+        ],
+        'pros': [
+            'Enterprise-grade reliability',
+            'Advanced features and controls',
+            'Better performance in poor network conditions',
+            'Professional recording capabilities',
+            'Excellent multi-participant support',
+            'HIPAA-compliant infrastructure',
+            'Advanced security features'
+        ],
+        'cons': [
+            'Additional subscription cost required',
+            'Requires stable internet connection',
+            'More complex setup and configuration',
+            'Data stored on third-party servers',
+            'May be overkill for simple consultations'
+        ],
+        'ideal_for': [
+            'Large healthcare organizations',
+            'Multi-participant consultations',
+            'Training and education sessions',
+            'Clinics requiring recording capabilities',
+            'Areas with stable high-speed internet'
+        ],
+        'bandwidth_requirement': '1.5 Mbps recommended',
+        'cost': 'Subscription required'
+    }
+    
+    return Response({
+        'webrtc': webrtc_preview,
+        'zoom': zoom_preview
+    })
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def check_user_permissions(request):
+    """Check current user's permissions for telehealth settings"""
+    
+    user = request.user
+    permissions = {
+        'can_view_settings': True,  # All authenticated users can view
+        'can_edit_settings': check_admin_or_coordinator_permission(user),
+        'can_view_audit_logs': check_admin_or_coordinator_permission(user),
+        'can_view_analytics': check_admin_or_coordinator_permission(user),
+        'user_type': user.user_type,
+        'user_name': user.full_name,
+        'subscription_tier': user.subscription_tier,
+        'can_use_zoom': user.can_use_zoom
+    }
+    
+    return Response(permissions)

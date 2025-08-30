@@ -3,6 +3,9 @@ from django.conf import settings
 from django.utils import timezone
 import uuid
 
+# Import clinic-specific models
+from .clinic_models import ClinicSettings, TelehealthTierAuditLog, TelehealthUsageAnalytics
+
 
 class TelehealthSession(models.Model):
     """Telehealth video session model"""
