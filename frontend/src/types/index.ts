@@ -2,21 +2,21 @@ export interface User {
   id: number;
   username: string;
   email: string;
-  firstName: string;
-  lastName: string;
-  fullName: string;
-  userType: 'patient' | 'provider' | 'admin' | 'care_team';
-  subscriptionTier: 'free' | 'basic' | 'premium' | 'enterprise';
-  phoneNumber?: string;
-  dateOfBirth?: string;
-  languagePreference: string;
+  first_name: string;
+  last_name: string;
+  full_name: string;
+  user_type: 'patient' | 'provider' | 'admin' | 'care_team';
+  subscription_tier: 'free' | 'basic' | 'premium' | 'enterprise';
+  phone_number?: string;
+  date_of_birth?: string;
+  language_preference: string;
   timezone: string;
-  biometricEnabled: boolean;
-  twoFactorEnabled: boolean;
-  isVerified: boolean;
-  canUseZoom: boolean;
-  dateJoined: string;
-  lastLogin?: string;
+  biometric_enabled: boolean;
+  two_factor_enabled: boolean;
+  is_verified: boolean;
+  can_use_zoom: boolean;
+  date_joined: string;
+  last_login?: string;
 }
 
 export interface AuthTokens {

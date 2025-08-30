@@ -3,6 +3,7 @@ from .models import (
     TelehealthSession, TelehealthParticipant, WebRTCSignaling,
     TelehealthDeviceTest, TelehealthRecording, TelehealthWaitingRoom
 )
+from .clinic_models import ClinicSettings, TelehealthTierAuditLog, TelehealthUsageAnalytics
 
 
 class TelehealthSessionSerializer(serializers.ModelSerializer):
@@ -112,3 +113,73 @@ class TelehealthWaitingRoomSerializer(serializers.ModelSerializer):
             denied_at__isnull=True,
             left_at__isnull=True
         ).count()
+
+
+class ClinicSettingsSerializer(serializers.ModelSerializer):
+    """Serializer for clinic telehealth settings"""
+    
+    default_telehealth_tier_display = serializers.CharField(
+        source='get_default_telehealth_tier_display', 
+        read_only=True
+    )
+    last_modified_by_name = serializers.CharField(
+        source='last_modified_by.full_name', 
+        read_only=True
+    )
+    
+    class Meta:
+        model = ClinicSettings
+        fields = '__all__'
+        read_only_fields = ('created_at', 'updated_at', 'last_modified_by')
+    
+    def validate_default_telehealth_tier(self, value):
+        """Validate that the clinic can use the selected tier"""
+        request = self.context.get('request')
+        if value == 'zoom' and request and request.user:
+            # Check if the clinic/user has zoom access
+            # For now, we'll allow it but could add more complex logic
+            pass
+        return value
+
+
+class TelehealthTierAuditLogSerializer(serializers.ModelSerializer):
+    """Serializer for telehealth tier audit logs"""
+    
+    user_name = serializers.CharField(source='user.full_name', read_only=True)
+    change_type_display = serializers.CharField(source='get_change_type_display', read_only=True)
+    
+    class Meta:
+        model = TelehealthTierAuditLog
+        fields = '__all__'
+        read_only_fields = ('user', 'timestamp')
+
+
+class TelehealthUsageAnalyticsSerializer(serializers.ModelSerializer):
+    """Serializer for telehealth usage analytics"""
+    
+    total_sessions = serializers.ReadOnlyField()
+    webrtc_usage_percentage = serializers.ReadOnlyField()
+    zoom_usage_percentage = serializers.ReadOnlyField()
+    tier_recommendation = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = TelehealthUsageAnalytics
+        fields = '__all__'
+        read_only_fields = ('created_at',)
+    
+    def get_tier_recommendation(self, obj):
+        return obj.get_tier_recommendation()
+
+
+class TelehealthTierPreviewSerializer(serializers.Serializer):
+    """Serializer for tier preview information"""
+    
+    tier = serializers.CharField()
+    title = serializers.CharField()
+    description = serializers.CharField()
+    features = serializers.ListField(child=serializers.CharField())
+    pros = serializers.ListField(child=serializers.CharField())
+    cons = serializers.ListField(child=serializers.CharField())
+    ideal_for = serializers.ListField(child=serializers.CharField())
+    bandwidth_requirement = serializers.CharField()
+    cost = serializers.CharField()
